@@ -9,6 +9,7 @@
 
 #include "odk_gps.h"
 #include "odk_ble.h"
+#include "odk_temp_sensor.h"
 
 extern TinyGPSPlus gps;
 extern BLECharacteristic anlgCh0Chstic;
@@ -35,6 +36,7 @@ Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT,
 
 uint16_t analogue_0 = 0;  // variable to store the value coming from the sensor
 uint16_t analogue_1 = 0;
+float temperature = 0;
 
 #define ODK_SPLASH_HEIGHT 64
 #define ODK_SPLASH_WIDTH 128
@@ -182,6 +184,7 @@ void loop() {
 	char anlg1string[5] = "9999";
     analogue_0 = analogRead(1);
     analogue_1 = analogRead(2);
+    temperature = get_temp();
 	sprintf(anlg0string, "%4d",analogue_0);
 	sprintf(anlg1string, "%4d",analogue_1);
 	anlgCh0Chstic.writeValue((byte*)anlg0string, 4);
@@ -190,12 +193,13 @@ void loop() {
     display.clearDisplay();
     display.setCursor(0, 0);     // Start at top-left corner
 	display.print(gps.date.year());display.print(F("/"));display.print(gps.date.month());display.print(F("/"));display.print(gps.date.day());display.print(F("  "));display.print(gps.time.hour());display.print(F(":"));display.print(gps.time.minute());display.print(F(":"));display.println(gps.time.second());
-	display.print(F("Latitude: ")); display.println(gps.location.lat());
-	display.print(F("Longitude: ")); display.println(gps.location.lng());
+	display.print(F("Lat: ")); display.print(gps.location.lat()); display.print(", ");
+	display.print(F("Lon: ")); display.println(gps.location.lng());
 	display.println();
     display.print(F("Analogue Port: ")); display.println(mux_sel);
-    display.print(F("Analogue 0: ")); display.println(analogue_0);
-    display.print(F("Analogue 1: ")); display.println(analogue_1);
+    display.print(F("A0: ")); display.print(analogue_0); display.print(", ");
+    display.print(F("A1: ")); display.println(analogue_1);
+    display.print(F("Temp: ")); display.println(temperature);
     display.display();
     // uint8_t bits = 0x01;
     // for (int i=0; i<8; i++) {
