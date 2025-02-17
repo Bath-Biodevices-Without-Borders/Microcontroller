@@ -53,10 +53,10 @@ void gps_poll(bool force)
         if (force || gps.location.isUpdated()) {
             double latitude = gps.location.lat();
             double longitude = gps.location.lng();
-            Serial.print("Latitude: ");
-            Serial.println(latitude, 6);
-            Serial.print("Longitude: ");
-            Serial.println(longitude, 6);
+            // Serial.print("Latitude: ");
+            // Serial.println(latitude, 6);
+            // Serial.print("Longitude: ");
+            // Serial.println(longitude, 6);
 
             sprintf(latString, "%+08.4lf", latitude);
             sprintf(lonString, "%+09.4lf", longitude);
@@ -68,12 +68,12 @@ void gps_poll(bool force)
             uint8_t hour = gps.time.hour();
             uint8_t minute = gps.time.minute();
             uint8_t second = gps.time.second();
-            Serial.print("Time (UTC): ");
-            Serial.print(hour);
-            Serial.print(":");
-            Serial.print(minute);
-            Serial.print(":");
-            Serial.println(second);
+            // Serial.print("Time (UTC): ");
+            // Serial.print(hour);
+            // Serial.print(":");
+            // Serial.print(minute);
+            // Serial.print(":");
+            // Serial.println(second);
 
             sprintf(timeString, "%02d:%02d:%02d", hour, minute, second);
             gpsTimeChstic.writeValue((byte*)timeString, 8);
@@ -83,12 +83,12 @@ void gps_poll(bool force)
             uint16_t year = gps.date.year();
             uint8_t month = gps.date.month();
             uint8_t day = gps.date.day();
-            Serial.print("Date (UTC): ");
-            Serial.print(year);
-            Serial.print("/");
-            Serial.print(month);
-            Serial.print("/");
-            Serial.println(day);
+            // Serial.print("Date (UTC): ");
+            // Serial.print(year);
+            // Serial.print("/");
+            // Serial.print(month);
+            // Serial.print("/");
+            // Serial.println(day);
 
             sprintf(dateString, "%04d/%02d/%02d", year, month, day);
             gpsDateChstic.writeValue((byte*)dateString, 10);

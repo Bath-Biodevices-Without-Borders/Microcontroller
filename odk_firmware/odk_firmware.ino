@@ -10,6 +10,7 @@
 #include "odk_gps.h"
 #include "odk_ble.h"
 #include "odk_temp_sensor.h"
+#include "odk_battery.h"
 
 extern TinyGPSPlus gps;
 extern BLECharacteristic anlgCh0Chstic;
@@ -122,7 +123,7 @@ void setup() {
     display.clearDisplay();
     display.drawBitmap(0,0,ODK_splash, ODK_SPLASH_WIDTH, ODK_SPLASH_HEIGHT,1);
     display.display();
-	for (int i = 0; i < 10; i ++)
+	for (int i = 0; i < 8; i ++)
 	{
 		delay(100);
 		display.invertDisplay(1);
@@ -150,6 +151,7 @@ void setup() {
 
     srInit();
 
+    wire_init();
     ble_init();
 	gps_init();
 	gps_poll(true);
@@ -190,11 +192,15 @@ void loop() {
 	anlgCh0Chstic.writeValue((byte*)anlg0string, 4);
 	anlgCh1Chstic.writeValue((byte*)anlg1string, 4);
 
+    uint16_t batLevel = read_bat_reg(BAT_VCELL);
+    uint16_t batDis = read_bat_reg(BAT_CRATE);
+
     display.clearDisplay();
     display.setCursor(0, 0);     // Start at top-left corner
+    display.print(F("Battery level: ")); display.println((float)batLevel * 0.0001559892211404729);
+    display.print(F("Battery Dscge: ")); display.print((float)batDis * 0.208); display.println("%");
 	display.print(gps.date.year());display.print(F("/"));display.print(gps.date.month());display.print(F("/"));display.print(gps.date.day());display.print(F("  "));display.print(gps.time.hour());display.print(F(":"));display.print(gps.time.minute());display.print(F(":"));display.println(gps.time.second());
-	display.print(F("Lat: ")); display.print(gps.location.lat()); display.print(", ");
-	display.print(F("Lon: ")); display.println(gps.location.lng());
+	display.print(F("Lat: ")); display.print(gps.location.lat()); display.print(F(", Lon: ")); display.println(gps.location.lng());
 	display.println();
     display.print(F("Analogue Port: ")); display.println(mux_sel);
     display.print(F("A0: ")); display.print(analogue_0); display.print(", ");
@@ -206,7 +212,42 @@ void loop() {
     //     bang_those_bits(bits);
     //     bits = bits << 1;
     //     delay(1000);
-    // }    
+    // }
+
+if (Serial.available() > 0) {
+    // Read the incoming string from the serial input
+    String inputStr = Serial.readStringUntil('\n');  // Read the input as a string
+    inputStr.trim();  // Remove any leading/trailing spaces or newline characters
+
+    int spaceIndex = inputStr.indexOf(' ');  // Find the space character (if any)
+    
+    if (spaceIndex == -1) {
+        // No space found, perform a read operation
+        long address = strtol(inputStr.c_str(), NULL, 16);  // Convert the string address to an integer (hex format)
+        Serial.print("Value at "); 
+        Serial.print((uint8_t)address); 
+        Serial.print(" = "); 
+        Serial.println(read_bat_reg((uint8_t)address));  // Call the read function
+    } else {
+        // Space found, perform a write operation
+        String addressStr = inputStr.substring(0, spaceIndex);  // Extract the address part
+        String dataStr = inputStr.substring(spaceIndex + 1);  // Extract the data part
+
+        addressStr.trim();
+        dataStr.trim();
+
+        long address = strtol(addressStr.c_str(), NULL, 16);  // Convert the address to an integer (hex format)
+        long data = strtol(dataStr.c_str(), NULL, 16);  // Convert the data to an integer (hex format)
+
+        write_bat_reg((uint8_t)address, (uint16_t)data);  // Call the write function
+        
+        Serial.print("Wrote "); 
+        Serial.print((uint16_t)data, HEX); 
+        Serial.print(" to address "); 
+        Serial.println((uint8_t)address, HEX);
+    }
+}
+
 }
 
 void srInit() {
